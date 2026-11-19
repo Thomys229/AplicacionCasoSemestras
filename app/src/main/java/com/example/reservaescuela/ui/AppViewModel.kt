@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.example.reservaescuela.data.LocalStore
+import com.example.reservaescuela.model.Block
+import com.example.reservaescuela.model.Notice
 import com.example.reservaescuela.model.Booking
+import com.example.reservaescuela.model.validateBooking
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.model.User
 import com.example.reservaescuela.utils.hashPassword
@@ -22,6 +25,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var users by mutableStateOf(store.users())
         private set
     var bookings by mutableStateOf(store.bookings())
+        private set
+    var blocks by mutableStateOf(store.blocks())
+        private set
+    var notices by mutableStateOf(store.notices())
         private set
     var documents by mutableStateOf(store.documents())
         private set
@@ -75,22 +82,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendBooking(booking: Booking): String? {
         val me = currentUser ?: return "No hay sesión activa."
-
-        if (booking.activity.isBlank()) return "Escribe la actividad."
-
-        val date = runCatching { LocalDate.parse(booking.date) }.getOrNull()
-            ?: return "Fecha inválida: usa AAAA-MM-DD."
-        if (date.isBefore(LocalDate.now())) return "La fecha no puede ser pasada."
-
-        val start = runCatching { LocalTime.parse(booking.start) }.getOrNull()
-            ?: return "Hora de inicio inválida: usa HH:mm."
-        val end = runCatching { LocalTime.parse(booking.end) }.getOrNull()
-            ?: return "Hora de término inválida: usa HH:mm."
-        if (!start.isBefore(end)) return "La hora de inicio debe ser anterior al término."
-
+        val error = validateBooking(booking, bookings, blocks)
+        if (error != null) return error
         bookings = bookings + booking.copy(owner = me.email)
         store.saveBookings(bookings)
+        users.filter { it.role == "Inspectoría" }.forEach {
+            addNotice(it.email, "Nueva solicitud de ${me.name} para ${booking.date}")
+        }
         return null
+    }
+
+    private fun addNotice(email: String, message: String) {
+        notices = notices + Notice(email, message, System.currentTimeMillis())
+        store.saveNotices(notices)
     }
 
     fun cancelBooking(id: Long) {

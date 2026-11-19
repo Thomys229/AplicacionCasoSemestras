@@ -1,6 +1,8 @@
 package com.example.reservaescuela.data
 
 import android.content.Context
+import com.example.reservaescuela.model.Block
+import com.example.reservaescuela.model.Notice
 import com.example.reservaescuela.model.Booking
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.model.User
@@ -67,7 +69,12 @@ class LocalStore(context: Context) {
                     start = item.getString("start"),
                     end = item.getString("end"),
                     activity = item.getString("activity"),
-                    status = item.getString("status")
+                    group = item.optString("group", "Sin especificar"),
+                    people = item.optInt("people", 1),
+                    resources = item.optString("resources", "Ninguno"),
+                    workshop = item.optBoolean("workshop"),
+                    status = item.optString("status", "Pendiente"),
+                    reason = item.optString("reason")
                 )
             )
         }
@@ -86,10 +93,43 @@ class LocalStore(context: Context) {
                     .put("start", it.start)
                     .put("end", it.end)
                     .put("activity", it.activity)
+                    .put("group", it.group)
+                    .put("people", it.people)
+                    .put("resources", it.resources)
+                    .put("workshop", it.workshop)
                     .put("status", it.status)
+                    .put("reason", it.reason)
             )
         }
         writeArray("bookings", array)
+    }
+
+    // ---------- bloqueos y avisos ----------
+    fun blocks(): List<Block> = readArray("blocks").let { arr ->
+        (0 until arr.length()).mapNotNull { index ->
+            runCatching { val obj = arr.getJSONObject(index)
+                Block(obj.getLong("id"), obj.getInt("space"), obj.getString("date"), obj.getString("start"), obj.getString("end"), obj.getString("reason"))
+            }.getOrNull()
+        }
+    }
+
+    fun saveBlocks(items: List<Block>) {
+        val array = JSONArray()
+        items.forEach { array.put(JSONObject().put("id", it.id).put("space", it.space).put("date", it.date).put("start", it.start).put("end", it.end).put("reason", it.reason)) }
+        writeArray("blocks", array)
+    }
+
+    fun notices(): List<Notice> = readArray("notices").let { arr ->
+        (0 until arr.length()).mapNotNull { index ->
+            runCatching { val obj = arr.getJSONObject(index)
+                Notice(obj.getString("email"), obj.getString("message"), obj.getLong("created"))
+            }.getOrNull()
+        }
+    }
+    fun saveNotices(items: List<Notice>) {
+        val array = JSONArray()
+        items.forEach { array.put(JSONObject().put("email", it.email).put("message", it.message).put("created", it.created)) }
+        writeArray("notices", array)
     }
 
     // ---------- documentos ----------
