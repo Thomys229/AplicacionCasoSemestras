@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.reservaescuela.data.LocalStore
 import com.example.reservaescuela.model.Block
 import com.example.reservaescuela.model.Notice
+import com.example.reservaescuela.model.Ticket
 import com.example.reservaescuela.model.Booking
 import com.example.reservaescuela.model.validateBooking
 import com.example.reservaescuela.model.isValidTimeRange
@@ -29,6 +30,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var bookings by mutableStateOf(store.bookings())
         private set
     var blocks by mutableStateOf(store.blocks())
+        private set
+    var tickets by mutableStateOf(store.tickets())
         private set
     var notices by mutableStateOf(store.notices())
         private set
@@ -145,6 +148,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!isAdmin) return
         blocks = blocks.filterNot { it.id == id }
         store.saveBlocks(blocks)
+    }
+
+
+    // ---------- incidencias ----------
+    fun addTicket(ticket: Ticket) {
+        val me = currentUser ?: return
+        tickets = tickets + ticket.copy(owner = me.email)
+        store.saveTickets(tickets)
+        users.filter { it.role == "Inspectoría" }.forEach {
+            addNotice(it.email, "Nueva incidencia: ${ticket.location}")
+        }
+    }
+
+    fun removeTicketFile(id: Long) {
+        val me = currentUser ?: return
+        tickets = tickets.map {
+            if (it.id == id && (it.owner == me.email || isAdmin))
+                it.copy(fileUri = "", fileName = "", fileType = "") else it
+        }
+        store.saveTickets(tickets)
     }
 
     // ---------- documentos ----------

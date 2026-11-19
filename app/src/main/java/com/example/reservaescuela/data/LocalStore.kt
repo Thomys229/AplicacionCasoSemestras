@@ -3,6 +3,7 @@ package com.example.reservaescuela.data
 import android.content.Context
 import com.example.reservaescuela.model.Block
 import com.example.reservaescuela.model.Notice
+import com.example.reservaescuela.model.Ticket
 import com.example.reservaescuela.model.Booking
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.model.User
@@ -130,6 +131,26 @@ class LocalStore(context: Context) {
         val array = JSONArray()
         items.forEach { array.put(JSONObject().put("email", it.email).put("message", it.message).put("created", it.created)) }
         writeArray("notices", array)
+    }
+
+    fun tickets(): List<Ticket> = readArray("tickets").let { arr ->
+        (0 until arr.length()).mapNotNull { index ->
+            runCatching {
+                val obj = arr.getJSONObject(index)
+                Ticket(obj.getLong("id"), obj.getString("owner"), obj.getInt("space"),
+                    obj.getString("location"), obj.getString("severity"), obj.getString("description"),
+                    obj.optString("fileUri"), obj.optString("fileName"), obj.optString("fileType"))
+            }.getOrNull()
+        }
+    }
+    fun saveTickets(items: List<Ticket>) {
+        val array = JSONArray()
+        items.forEach {
+            array.put(JSONObject().put("id", it.id).put("owner", it.owner).put("space", it.space)
+                .put("location", it.location).put("severity", it.severity).put("description", it.description)
+                .put("fileUri", it.fileUri).put("fileName", it.fileName).put("fileType", it.fileType))
+        }
+        writeArray("tickets", array)
     }
 
     // ---------- documentos ----------

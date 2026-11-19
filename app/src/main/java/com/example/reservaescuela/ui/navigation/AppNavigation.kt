@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
@@ -54,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.reservaescuela.ui.AppViewModel
 import com.example.reservaescuela.ui.screens.AvisosScreen
 import com.example.reservaescuela.ui.screens.BloqueosScreen
+import com.example.reservaescuela.ui.screens.IncidenciasScreen
 import com.example.reservaescuela.ui.screens.SolicitudesScreen
 import com.example.reservaescuela.ui.screens.DocumentosScreen
 import com.example.reservaescuela.ui.screens.HomeScreen
@@ -77,6 +79,7 @@ object Routes {
     const val SOLICITUDES = "solicitudes"
     const val BLOQUEOS = "bloqueos"
     const val AVISOS = "avisos"
+    const val INCIDENCIAS = "incidencias"
     const val DOCUMENTOS = "documentos"
     const val PERFIL = "perfil"
     const val LOGOUT = "cerrar_sesion"
@@ -89,6 +92,7 @@ private val reservar = MenuItem(Routes.RESERVAR, "Reservar", Icons.Default.Add)
 private val misReservas = MenuItem(Routes.MIS_RESERVAS, "Mis reservas", Icons.Default.DateRange)
 private val solicitudes = MenuItem(Routes.SOLICITUDES, "Solicitudes", Icons.Default.DateRange)
 private val bloqueos = MenuItem(Routes.BLOQUEOS, "Bloqueos", Icons.Default.Build)
+private val incidencias = MenuItem(Routes.INCIDENCIAS, "Incidencias", Icons.Default.Warning)
 private val avisos = MenuItem(Routes.AVISOS, "Avisos", Icons.Default.Notifications)
 private val documentos = MenuItem(Routes.DOCUMENTOS, "Documentos", Icons.AutoMirrored.Filled.List)
 private val perfil = MenuItem(Routes.PERFIL, "Editar mis datos", Icons.Default.Edit)
@@ -99,8 +103,8 @@ private fun bottomItems(admin: Boolean): List<MenuItem> =
     else listOf(inicio, reservar, misReservas, documentos, avisos)
 
 private fun drawerItems(admin: Boolean): List<MenuItem> =
-    if (admin) listOf(inicio, solicitudes, bloqueos, documentos, avisos, perfil, cerrarSesion)
-    else listOf(inicio, reservar, misReservas, documentos, avisos, perfil, cerrarSesion)
+    if (admin) listOf(inicio, solicitudes, bloqueos, documentos, incidencias, avisos, perfil, cerrarSesion)
+    else listOf(inicio, reservar, misReservas, documentos, incidencias, avisos, perfil, cerrarSesion)
 
 private fun titleFor(route: String): String = when (route) {
     Routes.HOME -> "Inicio"
@@ -109,6 +113,7 @@ private fun titleFor(route: String): String = when (route) {
     Routes.SOLICITUDES -> "Solicitudes"
     Routes.BLOQUEOS -> "Bloqueos"
     Routes.AVISOS -> "Avisos"
+    Routes.INCIDENCIAS -> "Incidencias"
     Routes.DOCUMENTOS -> "Documentos"
     Routes.PERFIL -> "Editar mis datos"
     Routes.LOGOUT -> "Cerrar sesión"
@@ -269,6 +274,7 @@ fun MainNav(vm: AppViewModel) {
                 composable(Routes.SOLICITUDES) { SolicitudesScreen(vm, show) }
                 composable(Routes.BLOQUEOS) { BloqueosScreen(vm, show) }
                 composable(Routes.AVISOS) { AvisosScreen(vm) }
+                composable(Routes.INCIDENCIAS) { IncidenciasScreen(vm, show) }
                 composable(Routes.DOCUMENTOS) { DocumentosScreen(vm, show) }
                 composable(Routes.PERFIL) { PerfilScreen(vm, show) }
                 composable(Routes.LOGOUT) {

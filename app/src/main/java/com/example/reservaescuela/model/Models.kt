@@ -30,6 +30,17 @@ data class Booking(
 )
 
 data class Block(val id: Long, val space: Int, val date: String, val start: String, val end: String, val reason: String)
+data class Ticket(
+    val id: Long,
+    val owner: String,
+    val space: Int,
+    val location: String,
+    val severity: String,
+    val description: String,
+    val fileUri: String = "",
+    val fileName: String = "",
+    val fileType: String = ""
+)
 data class Notice(val email: String, val message: String, val created: Long)
 
 // archivo pdf o word que sube el usuario
