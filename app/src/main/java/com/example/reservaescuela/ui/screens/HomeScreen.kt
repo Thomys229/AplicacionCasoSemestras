@@ -32,7 +32,10 @@ import com.example.reservaescuela.ui.navigation.Routes
 @Composable
 fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
     val user = vm.currentUser ?: return
-    val myBookings = vm.bookings.count { it.owner == user.email && it.status == "Confirmada" }
+    val admin = vm.isAdmin
+    val visibleBookings = if (admin) vm.bookings else vm.bookings.filter { it.owner == user.email }
+    val pending = visibleBookings.count { it.status == "Pendiente" }
+    val accepted = visibleBookings.count { it.status in listOf("Aceptada", "Confirmada") }
     val myDocuments = vm.documents.count { it.owner == user.email }
 
     LazyColumn(
@@ -43,20 +46,22 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Hola, ${user.name}", style = MaterialTheme.typography.headlineSmall)
+                    Text("Perfil: ${user.role}")
                     Text(user.email, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard(myBookings, "Reservas")
+                StatCard(pending, "Pendientes")
+                StatCard(accepted, "Aceptadas")
                 StatCard(myDocuments, "Documentos")
             }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { onNavigate(Routes.RESERVAR) }, modifier = Modifier.weight(1f)) {
-                    Text("Nueva reserva")
+                Button(onClick = { onNavigate(if (admin) Routes.SOLICITUDES else Routes.RESERVAR) }, modifier = Modifier.weight(1f)) {
+                    Text(if (admin) "Ver solicitudes" else "Nueva reserva")
                 }
                 OutlinedButton(onClick = { onNavigate(Routes.DOCUMENTOS) }, modifier = Modifier.weight(1f)) {
                     Text("Mis documentos")
@@ -72,6 +77,7 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
                     Text(space.name, style = MaterialTheme.typography.titleMedium)
                     Text(space.detail)
                     Text("Capacidad: ${space.capacity} personas")
+                    Text("Reservas aceptadas: ${vm.bookings.count { it.space == space.id && it.status in listOf("Aceptada", "Confirmada") }} · Bloqueos: ${vm.blocks.count { it.space == space.id }}")
                 }
             }
         }

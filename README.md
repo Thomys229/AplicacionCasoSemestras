@@ -1,58 +1,53 @@
 # Reservas Escuela Escritora Marcela Paz
 
-App Android hecha con Kotlin, Jetpack Compose y Material 3 para reservar espacios de la escuela y subir documentos.
+Aplicación Android desarrollada con **Kotlin**, **Jetpack Compose** y **Material 3** para gestionar reservas de espacios de una escuela, documentos e incidencias.
 
-## Cómo ejecutarla
+## Ejecutar
 
-1. Abrir esta carpeta en Android Studio (la que contiene `gradlew` y `settings.gradle.kts`) y esperar el Gradle Sync.
-2. Ejecutar en un emulador o teléfono con Android 8.0 (API 26) o superior.
-3. Registrar una cuenta y probar las pantallas.
+1. Abrir el repositorio en **Android Studio**.
+2. Esperar la sincronización de Gradle.
+3. Ejecutar en un emulador o teléfono con Android 8.0 (API 26) o superior.
+4. Para probar las funciones, registrar una cuenta de demostración como **Inspectoría** y otra como **Docente**.
 
-## Pantallas
+> Esta aplicación es un prototipo académico: los usuarios pueden seleccionar su perfil al registrarse y no existe autenticación de roles mediante un servidor. No usar este sistema para datos reales o acceso administrativo de producción.
 
-| Pantalla | Archivo |
+## Funcionalidades de la versión 2
+
+- **Perfiles:** Docente, UTP, Dirección, PIE e Inspectoría. Registro, inicio de sesión y edición de perfil.
+- **Solicitudes de reservas:** formulario con grupo, asistentes, recursos y talleres. Validación de capacidad, horarios, días hábiles, anticipación y conflictos.
+- **Gestión de Inspectoría:** aceptación y rechazo justificado de solicitudes; bloqueo de espacios.
+- **Avisos:** notificaciones locales para solicitudes y decisiones de Inspectoría.
+- **Incidencias:** registro de problemas, gravedad y adjuntos PDF, Word o imagen.
+- **Documentos:** selección, apertura y eliminación de referencias de documentos desde el teléfono.
+- **Navegación:** menú lateral, barra inferior y resumen de reservas.
+
+## Archivos principales
+
+| Componente | Ubicación |
 |---|---|
-| Pantalla de bienvenida | `ui/screens/AuthScreens.kt` (WelcomeScreen) |
-| Registro de usuarios | `ui/screens/AuthScreens.kt` (RegisterScreen) |
-| Iniciar sesión | `ui/screens/AuthScreens.kt` (LoginScreen) |
-| Vista de bienvenida (inicio) | `ui/screens/HomeScreen.kt` |
-| Reservar y mis reservas | `ui/screens/ReservasScreens.kt` |
-| Editar datos de usuario | `ui/screens/CuentaScreens.kt` (PerfilScreen) |
-| Cargar, ver y eliminar documentos | `ui/screens/DocumentosScreen.kt` |
-| Cerrar sesión | `ui/screens/CuentaScreens.kt` (LogoutScreen) |
+| Modelos y validaciones | `app/src/main/java/com/example/reservaescuela/model/Models.kt` |
+| Almacenamiento local | `app/src/main/java/com/example/reservaescuela/data/LocalStore.kt` |
+| Estado y lógica | `app/src/main/java/com/example/reservaescuela/ui/AppViewModel.kt` |
+| Autenticación | `app/src/main/java/com/example/reservaescuela/ui/screens/AuthScreens.kt` |
+| Reservas y bloqueos | `app/src/main/java/com/example/reservaescuela/ui/screens/ReservasScreens.kt` |
+| Incidencias | `app/src/main/java/com/example/reservaescuela/ui/screens/IncidenciasScreen.kt` |
+| Avisos y perfil | `app/src/main/java/com/example/reservaescuela/ui/screens/CuentaScreens.kt` |
+| Navegación | `app/src/main/java/com/example/reservaescuela/ui/navigation/AppNavigation.kt` |
+| Campos y archivos | `app/src/main/java/com/example/reservaescuela/ui/components/Components.kt` |
 
-## Requisitos del encargo
+## Historial de desarrollo
 
-| Requisito | Dónde está |
-|---|---|
-| Material 3 | Todas las pantallas, tema en `ui/theme/Theme.kt` |
-| Formularios validados | Login, registro, perfil y reservas |
-| Navegación | `ui/navigation/AppNavigation.kt` (Navigation Compose) |
-| Menú | Menú lateral (icono de las tres rayas) |
-| Barra superior e inferior | `MainNav` en `AppNavigation.kt` |
-| Gestión de estado | `ui/AppViewModel.kt` |
-| Almacenamiento local | `data/LocalStore.kt` (SharedPreferences) |
-| Recursos nativos (PDF y Word) | Selector de archivos en `ui/components/Components.kt` |
-| Animaciones | Transiciones entre pantallas, bienvenida y contadores del inicio |
+La rama `main` conserva la primera versión. La rama `mejoras-v2` agrega funciones mediante commits separados:
 
-## Estructura
+1. Roles de usuarios.
+2. Solicitudes de reservas y validaciones.
+3. Aprobaciones, bloqueos y avisos.
+4. Incidencias con adjuntos.
+5. Documentación y correcciones.
 
-```
-model/        datos (usuario, reserva, documento, espacios)
-data/         guardado local
-utils/        hash de contraseñas
-ui/           AppViewModel (estado)
-ui/navigation rutas, menú y barras
-ui/screens    una pantalla por función
-ui/components campos de formulario y selector de archivos
-```
+## Limitaciones del prototipo
 
-## Entrega
-
-**GitHub:** crear un repositorio, subir el proyecto (`git init`, `git add .`, `git commit`, `git push`) y agregar al profesor en Settings → Collaborators.
-
-**Trello:** crear un tablero con listas (Pendiente, En progreso, Terminado), una tarjeta por pantalla, y compartirlo con el profesor por correo.
-
-## Alcance
-
-Los datos son de demostración y quedan en el teléfono (no hay servidor). Las contraseñas se guardan como hash. De los archivos se guarda la referencia que entrega Android, no una copia.
+- Los datos permanecen en **SharedPreferences** del dispositivo. No se sincronizan entre teléfonos ni entre usuarios instalados en dispositivos distintos.
+- Las contraseñas se almacenan como hash, pero no existe un servidor de autenticación.
+- Los adjuntos guardan la URI del archivo; el archivo debe permanecer disponible y la aplicación debe conservar permisos de lectura.
+- Antes de la entrega conviene comprobar la sincronización de Gradle, compilación y los flujos de registro, reservas, Inspectoría e incidencias en Android Studio.

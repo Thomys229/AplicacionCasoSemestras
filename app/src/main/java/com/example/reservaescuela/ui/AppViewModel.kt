@@ -6,7 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.example.reservaescuela.data.LocalStore
+import com.example.reservaescuela.model.Block
+import com.example.reservaescuela.model.Notice
+import com.example.reservaescuela.model.Ticket
 import com.example.reservaescuela.model.Booking
+import com.example.reservaescuela.model.validateBooking
+import com.example.reservaescuela.model.isValidTimeRange
+import com.example.reservaescuela.model.overlap
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.model.User
 import com.example.reservaescuela.utils.hashPassword
@@ -23,6 +29,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         private set
     var bookings by mutableStateOf(store.bookings())
         private set
+    var blocks by mutableStateOf(store.blocks())
+        private set
+    var tickets by mutableStateOf(store.tickets())
+        private set
+    var notices by mutableStateOf(store.notices())
+        private set
     var documents by mutableStateOf(store.documents())
         private set
     var sessionEmail by mutableStateOf(store.session())
@@ -31,13 +43,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val currentUser: User?
         get() = users.firstOrNull { it.email == sessionEmail }
 
+    val isAdmin: Boolean
+        get() = currentUser?.role == "Inspectoría"
+
     // ---------- sesion ----------
 
     // todas las funciones devuelven el mensaje de error, o null si salio bien
-    fun register(name: String, email: String, password: String): String? {
+    fun register(name: String, email: String, password: String, role: String): String? {
         val mail = email.trim().lowercase()
         if (users.any { it.email == mail }) return "Ese correo ya está registrado."
-        users = users + User(mail, name.trim(), hashPassword(password))
+        users = users + User(mail, name.trim(), hashPassword(password), role)
         store.saveUsers(users)
         sessionEmail = mail
         store.saveSession(mail)
@@ -72,27 +87,87 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendBooking(booking: Booking): String? {
         val me = currentUser ?: return "No hay sesión activa."
-
-        if (booking.activity.isBlank()) return "Escribe la actividad."
-
-        val date = runCatching { LocalDate.parse(booking.date) }.getOrNull()
-            ?: return "Fecha inválida: usa AAAA-MM-DD."
-        if (date.isBefore(LocalDate.now())) return "La fecha no puede ser pasada."
-
-        val start = runCatching { LocalTime.parse(booking.start) }.getOrNull()
-            ?: return "Hora de inicio inválida: usa HH:mm."
-        val end = runCatching { LocalTime.parse(booking.end) }.getOrNull()
-            ?: return "Hora de término inválida: usa HH:mm."
-        if (!start.isBefore(end)) return "La hora de inicio debe ser anterior al término."
-
+        val error = validateBooking(booking, bookings, blocks)
+        if (error != null) return error
         bookings = bookings + booking.copy(owner = me.email)
         store.saveBookings(bookings)
+        users.filter { it.role == "Inspectoría" }.forEach {
+            addNotice(it.email, "Nueva solicitud de ${me.name} para ${booking.date}")
+        }
         return null
+    }
+
+    private fun addNotice(email: String, message: String) {
+        notices = notices + Notice(email, message, System.currentTimeMillis())
+        store.saveNotices(notices)
     }
 
     fun cancelBooking(id: Long) {
         bookings = bookings.map { if (it.id == id) it.copy(status = "Cancelada") else it }
         store.saveBookings(bookings)
+    }
+
+
+    // ---------- administración de reservas ----------
+    fun acceptBooking(id: Long): String? {
+        if (!isAdmin) return "Solo Inspectoría puede aprobar solicitudes."
+        val booking = bookings.firstOrNull { it.id == id && it.status == "Pendiente" } ?: return "La solicitud no está pendiente."
+        val error = validateBooking(booking, bookings, blocks)
+        if (error != null) return error
+        bookings = bookings.map { if (it.id == id) it.copy(status = "Aceptada") else it }
+        store.saveBookings(bookings)
+        addNotice(booking.owner, "Tu solicitud del ${booking.date} fue aceptada")
+        return null
+    }
+
+    fun rejectBooking(id: Long, reason: String): String? {
+        if (!isAdmin) return "Solo Inspectoría puede rechazar solicitudes."
+        if (reason.isBlank()) return "La justificación es obligatoria."
+        val booking = bookings.firstOrNull { it.id == id && it.status == "Pendiente" } ?: return "La solicitud no está pendiente."
+        bookings = bookings.map { if (it.id == id) it.copy(status = "Rechazada", reason = reason.trim()) else it }
+        store.saveBookings(bookings)
+        addNotice(booking.owner, "Tu solicitud del ${booking.date} fue rechazada: ${reason.trim()}")
+        return null
+    }
+
+    fun addBlock(block: Block): String? {
+        if (!isAdmin) return "Solo Inspectoría puede bloquear horarios."
+        if (block.reason.isBlank() || block.date.isBlank() || block.start.isBlank() || block.end.isBlank())
+            return "Completa todos los campos."
+        if (runCatching { LocalDate.parse(block.date) }.isFailure || !isValidTimeRange(block.start, block.end))
+            return "Fecha u horario inválidos."
+        if (bookings.any { it.space == block.space && it.date == block.date &&
+            it.status in listOf("Aceptada", "Confirmada") && overlap(it.start, it.end, block.start, block.end) })
+            return "Hay una reserva aceptada en ese horario."
+        blocks = blocks + block
+        store.saveBlocks(blocks)
+        return null
+    }
+
+    fun removeBlock(id: Long) {
+        if (!isAdmin) return
+        blocks = blocks.filterNot { it.id == id }
+        store.saveBlocks(blocks)
+    }
+
+
+    // ---------- incidencias ----------
+    fun addTicket(ticket: Ticket) {
+        val me = currentUser ?: return
+        tickets = tickets + ticket.copy(owner = me.email)
+        store.saveTickets(tickets)
+        users.filter { it.role == "Inspectoría" }.forEach {
+            addNotice(it.email, "Nueva incidencia: ${ticket.location}")
+        }
+    }
+
+    fun removeTicketFile(id: Long) {
+        val me = currentUser ?: return
+        tickets = tickets.map {
+            if (it.id == id && (it.owner == me.email || isAdmin))
+                it.copy(fileUri = "", fileName = "", fileType = "") else it
+        }
+        store.saveTickets(tickets)
     }
 
     // ---------- documentos ----------

@@ -33,9 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.reservaescuela.model.roles
 import com.example.reservaescuela.ui.AppViewModel
 import com.example.reservaescuela.ui.components.AppTextField
 import com.example.reservaescuela.ui.components.AuthLayout
+import com.example.reservaescuela.ui.components.DropdownField
 import com.example.reservaescuela.ui.components.PasswordField
 
 // pantalla de bienvenida (antes de iniciar sesion)
@@ -136,6 +138,7 @@ fun RegisterScreen(vm: AppViewModel, onBack: () -> Unit, onGoLogin: () -> Unit) 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf(roles.first()) }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
@@ -151,8 +154,13 @@ fun RegisterScreen(vm: AppViewModel, onBack: () -> Unit, onGoLogin: () -> Unit) 
             emailError,
             KeyboardType.Email
         )
+        DropdownField("Perfil", roles, role) { role = it }
         PasswordField(password, { password = it; passwordError = null }, "Contraseña (mínimo 6)", passwordError)
         PasswordField(confirm, { confirm = it; confirmError = null }, "Repetir contraseña", confirmError)
+        Text(
+            "Para probar las funciones de administración, registra una cuenta con perfil Inspectoría.",
+            style = MaterialTheme.typography.bodySmall
+        )
         Button(
             onClick = {
                 nameError = if (name.isBlank()) "Ingresa tu nombre" else null
@@ -161,7 +169,7 @@ fun RegisterScreen(vm: AppViewModel, onBack: () -> Unit, onGoLogin: () -> Unit) 
                 confirmError = if (confirm != password) "Las contraseñas no coinciden" else null
                 val hasErrors = listOf(nameError, emailError, passwordError, confirmError).any { it != null }
                 if (!hasErrors) {
-                    val error = vm.register(name, email, password)
+                    val error = vm.register(name, email, password, role)
                     if (error != null) emailError = error
                 }
             },

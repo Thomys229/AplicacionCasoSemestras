@@ -186,11 +186,14 @@ val pdfWordTypes = arrayOf(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 )
 
+val ticketFileTypes = pdfWordTypes + arrayOf("image/*")
+
 fun isPdfOrWord(mime: String): Boolean = pdfWordTypes.contains(mime)
 
 fun fileTypeLabel(mime: String): String = when {
     mime == "application/pdf" -> "PDF"
     mime.contains("word") -> "Word"
+    mime.startsWith("image/") -> "Imagen"
     else -> "Archivo"
 }
 
