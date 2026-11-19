@@ -10,6 +10,8 @@ import com.example.reservaescuela.model.Block
 import com.example.reservaescuela.model.Notice
 import com.example.reservaescuela.model.Booking
 import com.example.reservaescuela.model.validateBooking
+import com.example.reservaescuela.model.isValidTimeRange
+import com.example.reservaescuela.model.overlap
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.model.User
 import com.example.reservaescuela.utils.hashPassword
@@ -100,6 +102,49 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun cancelBooking(id: Long) {
         bookings = bookings.map { if (it.id == id) it.copy(status = "Cancelada") else it }
         store.saveBookings(bookings)
+    }
+
+
+    // ---------- administración de reservas ----------
+    fun acceptBooking(id: Long): String? {
+        if (!isAdmin) return "Solo Inspectoría puede aprobar solicitudes."
+        val booking = bookings.firstOrNull { it.id == id && it.status == "Pendiente" } ?: return "La solicitud no está pendiente."
+        val error = validateBooking(booking, bookings, blocks)
+        if (error != null) return error
+        bookings = bookings.map { if (it.id == id) it.copy(status = "Aceptada") else it }
+        store.saveBookings(bookings)
+        addNotice(booking.owner, "Tu solicitud del ${booking.date} fue aceptada")
+        return null
+    }
+
+    fun rejectBooking(id: Long, reason: String): String? {
+        if (!isAdmin) return "Solo Inspectoría puede rechazar solicitudes."
+        if (reason.isBlank()) return "La justificación es obligatoria."
+        val booking = bookings.firstOrNull { it.id == id && it.status == "Pendiente" } ?: return "La solicitud no está pendiente."
+        bookings = bookings.map { if (it.id == id) it.copy(status = "Rechazada", reason = reason.trim()) else it }
+        store.saveBookings(bookings)
+        addNotice(booking.owner, "Tu solicitud del ${booking.date} fue rechazada: ${reason.trim()}")
+        return null
+    }
+
+    fun addBlock(block: Block): String? {
+        if (!isAdmin) return "Solo Inspectoría puede bloquear horarios."
+        if (block.reason.isBlank() || block.date.isBlank() || block.start.isBlank() || block.end.isBlank())
+            return "Completa todos los campos."
+        if (runCatching { LocalDate.parse(block.date) }.isFailure || !isValidTimeRange(block.start, block.end))
+            return "Fecha u horario inválidos."
+        if (bookings.any { it.space == block.space && it.date == block.date &&
+            it.status in listOf("Aceptada", "Confirmada") && overlap(it.start, it.end, block.start, block.end) })
+            return "Hay una reserva aceptada en ese horario."
+        blocks = blocks + block
+        store.saveBlocks(blocks)
+        return null
+    }
+
+    fun removeBlock(id: Long) {
+        if (!isAdmin) return
+        blocks = blocks.filterNot { it.id == id }
+        store.saveBlocks(blocks)
     }
 
     // ---------- documentos ----------

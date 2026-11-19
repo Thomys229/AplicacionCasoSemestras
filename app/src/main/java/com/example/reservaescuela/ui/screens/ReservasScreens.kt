@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.reservaescuela.model.Block
 import com.example.reservaescuela.model.Booking
 import com.example.reservaescuela.model.nextBusinessDay
 import com.example.reservaescuela.model.spaceName
@@ -123,6 +125,79 @@ fun MisReservasScreen(vm: AppViewModel, show: (String) -> Unit) {
                         }) {
                             Text("Cancelar reserva")
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SolicitudesScreen(vm: AppViewModel, show: (String) -> Unit) {
+    if (!vm.isAdmin) { EmptyText("Acceso reservado a Inspectoría."); return }
+    val all = vm.bookings.sortedByDescending { it.id }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (all.isEmpty()) item { EmptyText("No hay solicitudes todavía.") }
+        items(all, key = { it.id }) { booking ->
+            var reason by remember(booking.id) { mutableStateOf("") }
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(spaceName(booking.space), style = MaterialTheme.typography.titleMedium)
+                    Text("${booking.date} · ${booking.start}–${booking.end} · ${booking.status}")
+                    Text("${booking.activity} · ${booking.group} · ${booking.people} asistentes")
+                    Text("Solicitante: ${booking.owner}")
+                    if (booking.reason.isNotBlank()) Text("Motivo: ${booking.reason}")
+                    if (booking.status == "Pendiente") {
+                        AppTextField(reason, { reason = it }, "Justificación del rechazo")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = { show(vm.acceptBooking(booking.id) ?: "Reserva aceptada.") }) {
+                                Text("Aceptar")
+                            }
+                            OutlinedButton(onClick = { show(vm.rejectBooking(booking.id, reason) ?: "Solicitud rechazada.") }) {
+                                Text("Rechazar")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BloqueosScreen(vm: AppViewModel, show: (String) -> Unit) {
+    if (!vm.isAdmin) { EmptyText("Acceso reservado a Inspectoría."); return }
+    var space by remember { mutableIntStateOf(1) }
+    var date by remember { mutableStateOf("") }
+    var start by remember { mutableStateOf("08:15") }
+    var end by remember { mutableStateOf("09:00") }
+    var reason by remember { mutableStateOf("") }
+    FormColumn {
+        SpaceDropdown(space) { space = it }
+        AppTextField(date, { date = it }, "Fecha (AAAA-MM-DD)")
+        AppTextField(start, { start = it }, "Inicio (HH:mm)")
+        AppTextField(end, { end = it }, "Término (HH:mm)")
+        AppTextField(reason, { reason = it }, "Mantenimiento o evento")
+        Button(
+            onClick = {
+                val block = Block(System.currentTimeMillis(), space, date.trim(), start.trim(), end.trim(), reason.trim())
+                show(vm.addBlock(block) ?: "Bloqueo registrado.")
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Guardar bloqueo") }
+        Text("Bloqueos activos", style = MaterialTheme.typography.titleMedium)
+        if (vm.blocks.isEmpty()) EmptyText("No hay bloqueos.")
+        vm.blocks.forEach { block ->
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("${spaceName(block.space)} · ${block.date}")
+                    Text("${block.start}–${block.end} · ${block.reason}")
+                    TextButton(onClick = { vm.removeBlock(block.id); show("Bloqueo eliminado.") }) {
+                        Text("Quitar bloqueo")
                     }
                 }
             }
