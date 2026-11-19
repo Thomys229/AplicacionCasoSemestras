@@ -1,6 +1,6 @@
 package com.example.reservaescuela.ui.screens
 
-import androidx.compose.animation.animateIntAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
