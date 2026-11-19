@@ -32,7 +32,7 @@ class LocalStore(context: Context) {
         val list = mutableListOf<User>()
         for (i in 0 until array.length()) {
             val item = array.getJSONObject(i)
-            list.add(User(item.getString("email"), item.getString("name"), item.getString("passwordHash")))
+            list.add(User(item.getString("email"), item.getString("name"), item.getString("passwordHash"), item.optString("role", "Docente")))
         }
         return list
     }
@@ -45,6 +45,7 @@ class LocalStore(context: Context) {
                     .put("email", it.email)
                     .put("name", it.name)
                     .put("passwordHash", it.passwordHash)
+                    .put("role", it.role)
             )
         }
         writeArray("users", array)

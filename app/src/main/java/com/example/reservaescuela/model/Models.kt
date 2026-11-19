@@ -3,7 +3,8 @@ package com.example.reservaescuela.model
 data class User(
     val email: String,
     val name: String,
-    val passwordHash: String
+    val passwordHash: String,
+    val role: String = "Docente"
 )
 
 data class Space(val id: Int, val name: String, val detail: String, val capacity: Int)
@@ -27,6 +28,8 @@ data class Document(
     val type: String,
     val uri: String
 )
+
+val roles = listOf("Docente", "UTP", "Dirección", "PIE", "Inspectoría")
 
 val spaces = listOf(
     Space(1, "Laboratorio de computación", "Equipos y proyector", 35),

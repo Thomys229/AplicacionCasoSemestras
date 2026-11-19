@@ -31,13 +31,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val currentUser: User?
         get() = users.firstOrNull { it.email == sessionEmail }
 
+    val isAdmin: Boolean
+        get() = currentUser?.role == "Inspectoría"
+
     // ---------- sesion ----------
 
     // todas las funciones devuelven el mensaje de error, o null si salio bien
-    fun register(name: String, email: String, password: String): String? {
+    fun register(name: String, email: String, password: String, role: String): String? {
         val mail = email.trim().lowercase()
         if (users.any { it.email == mail }) return "Ese correo ya está registrado."
-        users = users + User(mail, name.trim(), hashPassword(password))
+        users = users + User(mail, name.trim(), hashPassword(password), role)
         store.saveUsers(users)
         sessionEmail = mail
         store.saveSession(mail)
