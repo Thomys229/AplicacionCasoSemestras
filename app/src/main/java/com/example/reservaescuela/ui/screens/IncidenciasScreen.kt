@@ -21,7 +21,17 @@ fun IncidenciasScreen(vm: AppViewModel, show: (String) -> Unit) {
     var description by remember { mutableStateOf("") }
     var file by remember { mutableStateOf<PickedFile?>(null) }
     var error by remember { mutableStateOf("") }
-    val pickFile = rememberFilePicker(ticketFileTypes) { file = it }
+    val pickFile = rememberFilePicker(ticketFileTypes) { selected ->
+        file?.let { deleteCameraPhoto(context, it.uri, it.name) }
+        file = selected
+    }
+    val takePhoto = rememberCameraCapture(
+        onCaptured = { selected ->
+            file?.let { deleteCameraPhoto(context, it.uri, it.name) }
+            file = selected
+        },
+        onError = show
+    )
     val visibleTickets = vm.tickets.filter { vm.isAdmin || it.owner == user.email }.sortedByDescending { it.id }
 
     FormColumn {
@@ -29,13 +39,17 @@ fun IncidenciasScreen(vm: AppViewModel, show: (String) -> Unit) {
         AppTextField(location, { location = it }, "Número o lugar")
         DropdownField("Gravedad", listOf("Leve", "Atención inmediata"), severity) { severity = it }
         AppTextField(description, { description = it }, "Descripción del problema")
-        OutlinedButton(onClick = pickFile) { Text("Adjuntar archivo (PDF, Word o imagen)") }
+        OutlinedButton(onClick = pickFile) { Text("Adjuntar PDF, Word o foto") }
+        OutlinedButton(onClick = takePhoto) { Text("Sacar foto") }
         val attached = file
         if (attached != null) {
             Text("Adjunto: ${attached.name}")
             Row {
                 TextButton(onClick = { if (!openFile(context, attached.uri, attached.type)) show("No se pudo abrir el archivo.") }) { Text("Visualizar") }
-                TextButton(onClick = { file = null }) { Text("Quitar adjunto") }
+                TextButton(onClick = {
+                    file?.let { deleteCameraPhoto(context, it.uri, it.name) }
+                    file = null
+                }) { Text("Quitar adjunto") }
             }
         }
         if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
@@ -72,7 +86,11 @@ fun IncidenciasScreen(vm: AppViewModel, show: (String) -> Unit) {
                             TextButton(onClick = {
                                 if (!openFile(context, ticket.fileUri, ticket.fileType)) show("No se pudo abrir el archivo.")
                             }) { Text("Ver archivo") }
-                            TextButton(onClick = { vm.removeTicketFile(ticket.id); show("Archivo eliminado.") }) { Text("Eliminar archivo") }
+                            TextButton(onClick = {
+                                vm.removeTicketFile(ticket.id)
+                                deleteCameraPhoto(context, ticket.fileUri, ticket.fileName)
+                                show("Archivo eliminado.")
+                            }) { Text("Eliminar archivo") }
                         }
                     }
                 }
