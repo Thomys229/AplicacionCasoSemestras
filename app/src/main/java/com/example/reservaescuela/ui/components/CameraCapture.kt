@@ -1,10 +1,13 @@
 package com.example.reservaescuela.ui.components
 
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,7 +24,18 @@ fun rememberCameraCapture(
     val context = LocalContext.current
     var pendingPath by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+    val contract = remember {
+        object : ActivityResultContracts.TakePicture() {
+            override fun createIntent(context: Context, input: Uri): Intent {
+                return super.createIntent(context, input).apply {
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    clipData = ClipData.newUri(context.contentResolver, "Foto", input)
+                }
+            }
+        }
+    }
+
+    val camera = rememberLauncherForActivityResult(contract) { saved ->
         val path = pendingPath
         pendingPath = null
         if (path != null) {
