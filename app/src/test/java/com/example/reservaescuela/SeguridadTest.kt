@@ -9,8 +9,8 @@ class SeguridadTest {
     @Test
     fun generaHashDeLaContrasena() {
         assertEquals(
-            "8d969eef6ecad3c29a3a629280e686cff8fab4d" +
-                "a6d9c3af9e9eebfa1b6a9a5a5",
+            "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a" +
+                "86aff3ca12020c923adc6c92",
             hashPassword("123456")
         )
     }
