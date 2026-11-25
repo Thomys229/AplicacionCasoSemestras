@@ -17,8 +17,8 @@ Aplicación Android desarrollada con **Kotlin**, **Jetpack Compose** y **Materia
 - **Solicitudes de reservas:** formulario con grupo, asistentes, recursos y talleres. Validación de capacidad, horarios, días hábiles, anticipación y conflictos.
 - **Gestión de Inspectoría:** aceptación y rechazo justificado de solicitudes; bloqueo de espacios.
 - **Avisos:** notificaciones locales para solicitudes y decisiones de Inspectoría.
-- **Incidencias:** registro de problemas, gravedad y adjuntos PDF, Word o imagen.
-- **Documentos:** selección, apertura y eliminación de referencias de documentos desde el teléfono.
+- **Incidencias:** registro de problemas, gravedad, adjuntos PDF/Word, fotos de galería y fotos tomadas con la cámara.
+- **Documentos:** agregar PDF, Word, fotos de la galería y fotos tomadas con la cámara. Permite abrir y eliminar archivos.
 - **Navegación:** menú lateral, barra inferior y resumen de reservas.
 
 ## Archivos principales
@@ -49,5 +49,5 @@ La rama `main` conserva la primera versión. La rama `mejoras-v2` agrega funcion
 
 - Los datos permanecen en **SharedPreferences** del dispositivo. No se sincronizan entre teléfonos ni entre usuarios instalados en dispositivos distintos.
 - Las contraseñas se almacenan como hash, pero no existe un servidor de autenticación.
-- Los adjuntos guardan la URI del archivo; el archivo debe permanecer disponible y la aplicación debe conservar permisos de lectura.
+- Los PDF, Word y fotos elegidos guardan la URI del archivo y necesitan mantener el permiso de lectura. Las fotos tomadas con la cámara se guardan en el almacenamiento interno de la aplicación.
 - Antes de la entrega conviene comprobar la sincronización de Gradle, compilación y los flujos de registro, reservas, Inspectoría e incidencias en Android Studio.

@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,13 +27,15 @@ import androidx.compose.ui.unit.dp
 import com.example.reservaescuela.model.Document
 import com.example.reservaescuela.ui.AppViewModel
 import com.example.reservaescuela.ui.components.EmptyText
+import com.example.reservaescuela.ui.components.PickedFile
+import com.example.reservaescuela.ui.components.deleteCameraPhoto
 import com.example.reservaescuela.ui.components.fileTypeLabel
 import com.example.reservaescuela.ui.components.isPdfOrWord
 import com.example.reservaescuela.ui.components.openFile
 import com.example.reservaescuela.ui.components.pdfWordTypes
+import com.example.reservaescuela.ui.components.rememberCameraCapture
 import com.example.reservaescuela.ui.components.rememberFilePicker
 
-// cargar, ver y eliminar documentos pdf o word
 @Composable
 fun DocumentosScreen(vm: AppViewModel, show: (String) -> Unit) {
     val context = LocalContext.current
@@ -43,24 +43,46 @@ fun DocumentosScreen(vm: AppViewModel, show: (String) -> Unit) {
     val mine = vm.documents.filter { it.owner == user.email }.sortedByDescending { it.id }
     var toDelete by remember { mutableStateOf<Document?>(null) }
 
-    val pickFile = rememberFilePicker(pdfWordTypes) { file ->
-        if (!isPdfOrWord(file.type)) {
-            show("Solo se permiten archivos PDF o Word.")
+    fun guardar(file: PickedFile, message: String) {
+        vm.addDocument(Document(System.currentTimeMillis(), "", file.name, file.type, file.uri))
+        show(message)
+    }
+
+    val pickDocument = rememberFilePicker(pdfWordTypes) { file ->
+        if (isPdfOrWord(file.type)) {
+            guardar(file, "Documento cargado.")
         } else {
-            vm.addDocument(Document(System.currentTimeMillis(), "", file.name, file.type, file.uri))
-            show("Documento cargado.")
+            show("Selecciona un PDF o Word.")
         }
     }
 
+    val pickImage = rememberFilePicker(arrayOf("image/*")) { file ->
+        if (file.type.startsWith("image/")) {
+            guardar(file, "Foto agregada.")
+        } else {
+            show("Selecciona una imagen.")
+        }
+    }
+
+    val takePhoto = rememberCameraCapture(
+        onCaptured = { guardar(it, "Foto guardada.") },
+        onError = show
+    )
+
     Column(Modifier.fillMaxSize()) {
-        Button(
-            onClick = pickFile,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Text("Cargar documento (PDF o Word)")
+            Button(onClick = pickDocument, modifier = Modifier.fillMaxWidth()) {
+                Text("Agregar PDF o Word")
+            }
+            OutlinedButton(onClick = pickImage, modifier = Modifier.fillMaxWidth()) {
+                Text("Agregar foto de la galería")
+            }
+            OutlinedButton(onClick = takePhoto, modifier = Modifier.fillMaxWidth()) {
+                Text("Sacar foto")
+            }
         }
 
         LazyColumn(
@@ -68,7 +90,7 @@ fun DocumentosScreen(vm: AppViewModel, show: (String) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (mine.isEmpty()) {
-                item { EmptyText("Aún no has cargado documentos.") }
+                item { EmptyText("Aún no has agregado archivos.") }
             }
             items(mine, key = { it.id }) { doc ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -78,7 +100,7 @@ fun DocumentosScreen(vm: AppViewModel, show: (String) -> Unit) {
                         Row {
                             TextButton(onClick = {
                                 if (!openFile(context, doc.uri, doc.type)) {
-                                    show("No hay una aplicación para abrir este archivo.")
+                                    show("No se pudo abrir el archivo.")
                                 }
                             }) {
                                 Text("Ver")
@@ -97,13 +119,14 @@ fun DocumentosScreen(vm: AppViewModel, show: (String) -> Unit) {
     if (pending != null) {
         AlertDialog(
             onDismissRequest = { toDelete = null },
-            title = { Text("Eliminar documento") },
+            title = { Text("Eliminar archivo") },
             text = { Text("¿Quieres eliminar \"${pending.name}\"?") },
             confirmButton = {
                 TextButton(onClick = {
                     vm.removeDocument(pending.id)
+                    deleteCameraPhoto(context, pending.uri, pending.name)
                     toDelete = null
-                    show("Documento eliminado.")
+                    show("Archivo eliminado.")
                 }) {
                     Text("Eliminar")
                 }
