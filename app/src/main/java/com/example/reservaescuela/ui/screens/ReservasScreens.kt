@@ -34,13 +34,16 @@ import com.example.reservaescuela.ui.components.AppTextField
 import com.example.reservaescuela.ui.components.EmptyText
 import com.example.reservaescuela.ui.components.FormColumn
 import com.example.reservaescuela.ui.components.SpaceDropdown
-import java.time.LocalDate
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.reservaescuela.model.bookingDateError
+import com.example.reservaescuela.model.canBlockDate
+import com.example.reservaescuela.ui.components.DateField
 
 // formulario para reservar un espacio
 @Composable
 fun ReservarScreen(vm: AppViewModel, show: (String) -> Unit, onSent: () -> Unit) {
     var space by remember { mutableIntStateOf(1) }
-    var date by remember { mutableStateOf(nextBusinessDay().toString()) }
+    var date by rememberSaveable { mutableStateOf(nextBusinessDay().toString()) }
     var start by remember { mutableStateOf("08:15") }
     var end by remember { mutableStateOf("09:00") }
     var activity by remember { mutableStateOf("") }
@@ -53,7 +56,7 @@ fun ReservarScreen(vm: AppViewModel, show: (String) -> Unit, onSent: () -> Unit)
 
     FormColumn {
         SpaceDropdown(space) { space = it }
-        AppTextField(date, { date = it }, "Fecha (AAAA-MM-DD)")
+        DateField(date, { date = it }) { day, today -> bookingDateError(day, today) == null }
         AppTextField(start, { start = it }, "Inicio (HH:mm)")
         AppTextField(end, { end = it }, "Término (HH:mm)")
         Row {
@@ -172,13 +175,13 @@ fun SolicitudesScreen(vm: AppViewModel, show: (String) -> Unit) {
 fun BloqueosScreen(vm: AppViewModel, show: (String) -> Unit) {
     if (!vm.isAdmin) { EmptyText("Acceso reservado a Inspectoría."); return }
     var space by remember { mutableIntStateOf(1) }
-    var date by remember { mutableStateOf("") }
+    var date by rememberSaveable { mutableStateOf("") }
     var start by remember { mutableStateOf("08:15") }
     var end by remember { mutableStateOf("09:00") }
     var reason by remember { mutableStateOf("") }
     FormColumn {
         SpaceDropdown(space) { space = it }
-        AppTextField(date, { date = it }, "Fecha (AAAA-MM-DD)")
+        DateField(date, { date = it }, ::canBlockDate)
         AppTextField(start, { start = it }, "Inicio (HH:mm)")
         AppTextField(end, { end = it }, "Término (HH:mm)")
         AppTextField(reason, { reason = it }, "Mantenimiento o evento")
