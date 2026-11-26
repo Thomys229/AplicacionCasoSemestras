@@ -51,3 +51,17 @@ La rama `main` conserva la primera versión. La rama `mejoras-v2` agrega funcion
 - Las contraseñas se almacenan como hash, pero no existe un servidor de autenticación.
 - Los PDF, Word y fotos elegidos guardan la URI del archivo y necesitan mantener el permiso de lectura. Las fotos tomadas con la cámara se guardan en el almacenamiento interno de la aplicación.
 - Antes de la entrega conviene comprobar la sincronización de Gradle, compilación y los flujos de registro, reservas, Inspectoría e incidencias en Android Studio.
+
+## Entrega firmada
+
+En `entrega/`, el APK sirve para instalar la aplicación en Android 8 o superior. El AAB es el paquete de publicación para Google Play. La rúbrica pide mostrar el APK firmado y explicar su generación (págs. 4 y 6).
+
+Para repetir la entrega en Android Studio:
+
+1. Ejecuta las pruebas de `BookingDatesTest` y comprueba la variante `release`. El módulo `app` tiene habilitada la optimización con R8.
+2. Abre **Build → Generate Signed App Bundle or APK**, selecciona **APK** y el módulo **app**.
+3. Selecciona el almacén de firma privado y el alias `reserva-escuela`. Introduce la contraseña local, elige **release** y genera el APK.
+4. Repite el asistente seleccionando **Android App Bundle** para generar el AAB con la misma llave.
+5. Comprueba la firma del APK con `apksigner verify --verbose --print-certs ReservaEscuela-release.apk`. El comando muestra los esquemas verificados y la huella del certificado que puedes enseñar en la presentación. Para el AAB usa `jarsigner -verify -verbose -certs ReservaEscuela-release.aab`.
+
+Para esta entrega se usaron las tareas Gradle `:app:assembleRelease` y `:app:bundleRelease`. Se comprobó la alineación del APK con `zipalign`, se firmó con `apksigner` y se firmó el AAB con `jarsigner`. La llave privada y su contraseña se conservan fuera del repositorio.
