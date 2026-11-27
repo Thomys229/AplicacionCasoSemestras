@@ -42,7 +42,7 @@ import com.example.reservaescuela.ui.components.PasswordField
 
 // pantalla de bienvenida (antes de iniciar sesion)
 @Composable
-fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
+fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit, onAgenda: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
@@ -77,6 +77,9 @@ fun WelcomeScreen(onLogin: () -> Unit, onRegister: () -> Unit) {
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(32.dp))
+                Button(onClick = onAgenda, modifier = Modifier.fillMaxWidth()) {
+                    Text("Agenda compartida")
+                }
                 Button(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
                     Text("Iniciar sesión")
                 }

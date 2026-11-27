@@ -1,5 +1,7 @@
 # Reservas Escuela Escritora Marcela Paz
 
+**Agenda compartida (1.2).** En la bienvenida o en Inicio, abre **Agenda compartida** para solicitar y aprobar reservas entre dispositivos por internet. [Configurar Render y Neon y probar ambos teléfonos](backend/reservas/README.md).
+
 Aplicación Android desarrollada con **Kotlin**, **Jetpack Compose** y **Material 3** para gestionar reservas de espacios de una escuela, documentos e incidencias.
 
 ## Ejecutar

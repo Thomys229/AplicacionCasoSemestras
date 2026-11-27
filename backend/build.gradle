@@ -17,3 +17,11 @@ project(':materiales') {
         runtimeOnly 'com.h2database:h2'
     }
 }
+project(':reservas') {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        runtimeOnly 'org.postgresql:postgresql'
+        testRuntimeOnly 'com.h2database:h2'
+    }
+}

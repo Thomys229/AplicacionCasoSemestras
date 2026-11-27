@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: reservas-escuela
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/reservas/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DOCENTE_PASSWORD
+        sync: false
+      - key: INSPECTORIA_PASSWORD
+        sync: false

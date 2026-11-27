@@ -60,6 +60,7 @@ import com.example.reservaescuela.ui.screens.SolicitudesScreen
 import com.example.reservaescuela.ui.screens.DocumentosScreen
 import com.example.reservaescuela.ui.screens.HomeScreen
 import com.example.reservaescuela.ui.screens.MaterialesScreen
+import com.example.reservaescuela.ui.screens.AgendaScreen
 import com.example.reservaescuela.ui.screens.LoginScreen
 import com.example.reservaescuela.ui.screens.LogoutScreen
 import com.example.reservaescuela.ui.screens.MisReservasScreen
@@ -76,6 +77,7 @@ object Routes {
 
     const val HOME = "inicio"
     const val MATERIALES = "materiales"
+    const val AGENDA = "agenda_compartida"
     const val RESERVAR = "reservar"
     const val MIS_RESERVAS = "mis_reservas"
     const val SOLICITUDES = "solicitudes"
@@ -111,6 +113,7 @@ private fun drawerItems(admin: Boolean): List<MenuItem> =
 private fun titleFor(route: String): String = when (route) {
     Routes.HOME -> "Inicio"
     Routes.MATERIALES -> "Materiales compartidos"
+    Routes.AGENDA -> "Agenda compartida"
     Routes.RESERVAR -> "Nueva reserva"
     Routes.MIS_RESERVAS -> "Mis reservas"
     Routes.SOLICITUDES -> "Solicitudes"
@@ -148,7 +151,8 @@ fun AuthNav(vm: AppViewModel) {
             composable(Routes.WELCOME) {
                 WelcomeScreen(
                     onLogin = { nav.navigate(Routes.LOGIN) },
-                    onRegister = { nav.navigate(Routes.REGISTER) }
+                    onRegister = { nav.navigate(Routes.REGISTER) },
+                    onAgenda = { nav.navigate(Routes.AGENDA) }
                 )
             }
             composable(Routes.LOGIN) {
@@ -158,6 +162,7 @@ fun AuthNav(vm: AppViewModel) {
                     onGoRegister = { nav.navigate(Routes.REGISTER) }
                 )
             }
+            composable(Routes.AGENDA) { AgendaScreen(volver = { nav.popBackStack() }) }
             composable(Routes.REGISTER) {
                 RegisterScreen(
                     vm = vm,
@@ -271,6 +276,7 @@ fun MainNav(vm: AppViewModel) {
             ) {
                 composable(Routes.HOME) { HomeScreen(vm, onNavigate = { go(it) }) }
                 composable(Routes.MATERIALES) { MaterialesScreen() }
+                composable(Routes.AGENDA) { AgendaScreen(volver = { nav.popBackStack() }) }
                 composable(Routes.RESERVAR) {
                     ReservarScreen(vm, show, onSent = { go(Routes.MIS_RESERVAS) })
                 }
