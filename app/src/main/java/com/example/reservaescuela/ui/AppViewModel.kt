@@ -138,7 +138,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val date = runCatching { LocalDate.parse(block.date) }.getOrNull()
         if (date == null || !isValidTimeRange(block.start, block.end))
             return "Fecha u horario inválidos."
-        if (!canBlockDate(date)) return "El bloqueo debe ser para hoy o una fecha futura."
+        if (!canBlockDate(date)) return "Elige un día de lunes a viernes, desde hoy."
         if (bookings.any { it.space == block.space && it.date == block.date &&
             it.status in listOf("Aceptada", "Confirmada") && overlap(it.start, it.end, block.start, block.end) })
             return "Hay una reserva aceptada en ese horario."

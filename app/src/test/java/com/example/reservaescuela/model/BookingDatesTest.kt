@@ -24,9 +24,11 @@ class BookingDatesTest {
         assertNotNull(bookingDateError(monday.plusDays(5), monday))
     }
 
-    @Test fun inspectoriaPuedeBloquearDesdeHoyInclusoElFinDeSemana() {
+    @Test fun inspectoriaPuedeBloquearDesdeHoyEnDiasDeSemana() {
         assertFalse(canBlockDate(friday.minusDays(1), friday))
         assertTrue(canBlockDate(friday, friday))
-        assertTrue(canBlockDate(friday.plusDays(1), friday))
+        assertFalse(canBlockDate(friday.plusDays(1), friday))
+        assertFalse(canBlockDate(friday.plusDays(2), friday))
+        assertTrue(canBlockDate(friday.plusDays(3), friday))
     }
 }

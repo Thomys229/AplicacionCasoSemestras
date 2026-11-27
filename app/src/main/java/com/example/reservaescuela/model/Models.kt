@@ -82,7 +82,7 @@ fun bookingDateError(date: LocalDate, today: LocalDate = LocalDate.now()): Strin
 }
 
 fun canBlockDate(date: LocalDate, today: LocalDate = LocalDate.now()): Boolean =
-    !date.isBefore(today)
+    !date.isBefore(today) && !isWeekend(date)
 
 fun overlap(startA: String, endA: String, startB: String, endB: String): Boolean =
     startA < endB && startB < endA

@@ -47,7 +47,7 @@ La rama `main` conserva la primera versión. La rama `mejoras-v2` agrega funcion
 
 ## Limitaciones del prototipo
 
-- Los datos permanecen en **SharedPreferences** del dispositivo. No se sincronizan entre teléfonos ni entre usuarios instalados en dispositivos distintos.
+- Las cuentas, reservas, bloqueos, documentos e incidencias se guardan en **SharedPreferences**. El inventario de **Materiales compartidos** se guarda en el PC mediante Spring Boot. [Preparar los servicios y demostrar la persistencia](backend/README.md).
 - Las contraseñas se almacenan como hash, pero no existe un servidor de autenticación.
 - Los PDF, Word y fotos elegidos guardan la URI del archivo y necesitan mantener el permiso de lectura. Las fotos tomadas con la cámara se guardan en el almacenamiento interno de la aplicación.
 - Antes de la entrega conviene comprobar la sincronización de Gradle, compilación y los flujos de registro, reservas, Inspectoría e incidencias en Android Studio.
@@ -58,7 +58,7 @@ En `entrega/`, el APK sirve para instalar la aplicación en Android 8 o superior
 
 Para repetir la entrega en Android Studio:
 
-1. Ejecuta las pruebas de `BookingDatesTest` y comprueba la variante `release`. El módulo `app` tiene habilitada la optimización con R8.
+1. Ejecuta `.\gradlew.bat :app:testDebugUnitTest` y comprueba la variante `release`. El módulo `app` tiene habilitada la optimización con R8.
 2. Abre **Build → Generate Signed App Bundle or APK**, selecciona **APK** y el módulo **app**.
 3. Selecciona el almacén de firma privado y el alias `reserva-escuela`. Introduce la contraseña local, elige **release** y genera el APK.
 4. Repite el asistente seleccionando **Android App Bundle** para generar el AAB con la misma llave.
