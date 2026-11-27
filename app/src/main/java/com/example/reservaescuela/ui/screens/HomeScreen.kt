@@ -72,6 +72,9 @@ fun HomeScreen(vm: AppViewModel, onNavigate: (String) -> Unit) {
             OutlinedButton(onClick = { onNavigate(Routes.MATERIALES) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Materiales compartidos")
             }
+            OutlinedButton(onClick = { onNavigate(Routes.AGENDA) }, modifier = Modifier.fillMaxWidth()) {
+                Text("Agenda compartida")
+            }
         }
         item {
             Text("Espacios de la escuela", style = MaterialTheme.typography.titleMedium)

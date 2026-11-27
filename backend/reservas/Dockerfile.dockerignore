@@ -1,0 +1,11 @@
+**
+!gradlew
+!gradle/
+!gradle/wrapper/
+!gradle/wrapper/**
+!backend/
+!backend/build.gradle
+!backend/settings.gradle
+!backend/reservas/
+!backend/reservas/src/
+!backend/reservas/src/**
