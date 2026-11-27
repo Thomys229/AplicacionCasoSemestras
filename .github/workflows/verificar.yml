@@ -1,0 +1,43 @@
+name: Verificar defensa
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  servicios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: bash gradlew -p backend test
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0"'
+      - name: Preparar Android 34 para Robolectric
+        run: |
+          version=14-robolectric-10818077-i7
+          artifact=android-all-instrumented
+          path="org/robolectric/$artifact/$version"
+          dest="$HOME/.m2/repository/$path"
+          mkdir -p "$dest"
+          cd "$dest"
+          for extension in jar pom; do
+            file="$artifact-$version.$extension"
+            curl -fsSL --retry 2 "https://maven-central.storage-download.googleapis.com/maven2/$path/$file" -o "$file" ||
+              curl -fsSL --retry 2 "https://repo.maven.apache.org/maven2/$path/$file" -o "$file"
+          done
+          echo "3fdac2d463f431c6b8d83b9d0ca739e795de75fffedee648c6761bd4bd864701  $artifact-$version.jar" | sha256sum -c -
+          echo "66fd972dda30382c94afc84414cdb62bfdd7a43ddd558ccda0f04a92ab9aea1a  $artifact-$version.pom" | sha256sum -c -
+      - run: bash gradlew :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease

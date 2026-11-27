@@ -10,6 +10,7 @@ import com.example.reservaescuela.model.Block
 import com.example.reservaescuela.model.Notice
 import com.example.reservaescuela.model.Ticket
 import com.example.reservaescuela.model.Booking
+import com.example.reservaescuela.model.canBlockDate
 import com.example.reservaescuela.model.validateBooking
 import com.example.reservaescuela.model.isValidTimeRange
 import com.example.reservaescuela.model.overlap
@@ -134,8 +135,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!isAdmin) return "Solo Inspectoría puede bloquear horarios."
         if (block.reason.isBlank() || block.date.isBlank() || block.start.isBlank() || block.end.isBlank())
             return "Completa todos los campos."
-        if (runCatching { LocalDate.parse(block.date) }.isFailure || !isValidTimeRange(block.start, block.end))
+        val date = runCatching { LocalDate.parse(block.date) }.getOrNull()
+        if (date == null || !isValidTimeRange(block.start, block.end))
             return "Fecha u horario inválidos."
+        if (!canBlockDate(date)) return "Elige un día de lunes a viernes, desde hoy."
         if (bookings.any { it.space == block.space && it.date == block.date &&
             it.status in listOf("Aceptada", "Confirmada") && overlap(it.start, it.end, block.start, block.end) })
             return "Hay una reserva aceptada en ese horario."

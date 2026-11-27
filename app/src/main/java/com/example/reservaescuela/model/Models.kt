@@ -69,11 +69,20 @@ fun spaceName(id: Int): String = spaces.firstOrNull { it.id == id }?.name ?: "Es
 private fun isWeekend(date: LocalDate): Boolean =
     date.dayOfWeek == DayOfWeek.SATURDAY || date.dayOfWeek == DayOfWeek.SUNDAY
 
-fun nextBusinessDay(): LocalDate {
-    var day = LocalDate.now().plusDays(1)
+fun nextBusinessDay(today: LocalDate = LocalDate.now()): LocalDate {
+    var day = today.plusDays(1)
     while (isWeekend(day)) day = day.plusDays(1)
     return day
 }
+
+fun bookingDateError(date: LocalDate, today: LocalDate = LocalDate.now()): String? = when {
+    isWeekend(date) -> "No se permiten reservas los fines de semana."
+    date.isBefore(nextBusinessDay(today)) -> "Debes reservar con al menos un día hábil de anticipación."
+    else -> null
+}
+
+fun canBlockDate(date: LocalDate, today: LocalDate = LocalDate.now()): Boolean =
+    !date.isBefore(today) && !isWeekend(date)
 
 fun overlap(startA: String, endA: String, startB: String, endB: String): Boolean =
     startA < endB && startB < endA
@@ -93,8 +102,7 @@ fun validateBooking(b: Booking, bookings: List<Booking>, blocks: List<Block>): S
     val start = runCatching { LocalTime.parse(b.start) }.getOrNull() ?: return "Hora de inicio inválida: usa HH:mm."
     val end = runCatching { LocalTime.parse(b.end) }.getOrNull() ?: return "Hora de término inválida: usa HH:mm."
     if (!start.isBefore(end)) return "La hora de inicio debe ser anterior al término."
-    if (isWeekend(date)) return "No se permiten reservas los fines de semana."
-    if (date.isBefore(nextBusinessDay())) return "Debes reservar con al menos un día hábil de anticipación."
+    bookingDateError(date)?.let { return it }
     if (start.isBefore(LocalTime.of(8, 15))) return "La jornada comienza a las 08:15."
     if (date.dayOfWeek == DayOfWeek.FRIDAY) {
         if (end.isAfter(LocalTime.of(14, 0))) return "El viernes termina a las 14:00."

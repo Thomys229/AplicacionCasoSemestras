@@ -59,6 +59,7 @@ import com.example.reservaescuela.ui.screens.IncidenciasScreen
 import com.example.reservaescuela.ui.screens.SolicitudesScreen
 import com.example.reservaescuela.ui.screens.DocumentosScreen
 import com.example.reservaescuela.ui.screens.HomeScreen
+import com.example.reservaescuela.ui.screens.MaterialesScreen
 import com.example.reservaescuela.ui.screens.LoginScreen
 import com.example.reservaescuela.ui.screens.LogoutScreen
 import com.example.reservaescuela.ui.screens.MisReservasScreen
@@ -74,6 +75,7 @@ object Routes {
     const val REGISTER = "registro"
 
     const val HOME = "inicio"
+    const val MATERIALES = "materiales"
     const val RESERVAR = "reservar"
     const val MIS_RESERVAS = "mis_reservas"
     const val SOLICITUDES = "solicitudes"
@@ -108,6 +110,7 @@ private fun drawerItems(admin: Boolean): List<MenuItem> =
 
 private fun titleFor(route: String): String = when (route) {
     Routes.HOME -> "Inicio"
+    Routes.MATERIALES -> "Materiales compartidos"
     Routes.RESERVAR -> "Nueva reserva"
     Routes.MIS_RESERVAS -> "Mis reservas"
     Routes.SOLICITUDES -> "Solicitudes"
@@ -267,6 +270,7 @@ fun MainNav(vm: AppViewModel) {
                 exitTransition = { fadeOut(tween(150)) }
             ) {
                 composable(Routes.HOME) { HomeScreen(vm, onNavigate = { go(it) }) }
+                composable(Routes.MATERIALES) { MaterialesScreen() }
                 composable(Routes.RESERVAR) {
                     ReservarScreen(vm, show, onSent = { go(Routes.MIS_RESERVAS) })
                 }
