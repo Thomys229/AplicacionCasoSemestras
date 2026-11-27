@@ -1,5 +1,9 @@
 name: Verificar defensa
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -21,4 +25,6 @@ jobs:
           distribution: temurin
           java-version: '25'
       - run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0"'
+      - name: Preparar Android 34 para Robolectric
+        run: mvn -B -q -Dmaven.wagon.http.retryHandler.count=4 dependency:get -Dartifact=org.robolectric:android-all-instrumented:14-robolectric-10818077-i7 -Dtransitive=false
       - run: bash gradlew :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
